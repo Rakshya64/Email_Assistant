@@ -19,5 +19,8 @@ def generate_email_route():
 
     return jsonify({"email": email_content})
 
+
 if __name__ == "__main__":
     app.run(debug=True)
+
+
