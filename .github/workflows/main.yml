@@ -1,25 +1,45 @@
 name: CI/CD Pipeline
-on: push
+
+on:
+  push:
+    branches:
+      - main  # This triggers the workflow only on push to the 'main' branch
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Run tests
-      run: |
-        pytest
-    - name: Build Docker image
-      run: |
-        docker build -t gemini-api .
-    - name: Deploy
-      run: |
-        docker run -d -p 80:80 gemini-api
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 4: Run tests
+      - name: Run tests
+        run: |
+          pytest
+
+      # Step 5: Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t gemini-api .
+
+      # Step 6: Deploy the Docker image (Optional: Ensure EC2 or another host is set up for deployment)
+      - name: Deploy to EC2 (or another environment)
+        run: |
+          # You need to configure SSH access or use ECS or another cloud service to deploy.
+          # Example for SSH:
+          # ssh -i ${{ secrets.EC2_SSH_KEY }} user@EC2_IP "docker pull gemini-api && docker run -d -p 80:80 gemini-api"
+
