@@ -2,7 +2,7 @@ name : Email Assistant pipeline
 
 on:
 #  initiates the pipeline whenever user pushes on the main branch
-  pull_request:
+  push:
     branches:
       - main
 
