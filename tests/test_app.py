@@ -1,30 +1,54 @@
-import unittest
-from app import app  # Import the app instance
+import pytest
+from flask import Flask
+from app.app import app
 
-class TestEmailGenerator(unittest.TestCase):
+@pytest.fixture
+def client():
+    """Fixture to set up a test client for the Flask app."""
+    app.testing = True
+    with app.test_client() as client:
+        yield client
 
-    def setUp(self):
-        """Set up the app for testing."""
-        self.client = app.test_client()  # Get a test client instance
-        self.client.testing = True  # Enable testing mode
+def test_index_route(client):
+    """Test the index route ("/")."""
+    response = client.get("/")
+    assert response.status_code == 200
+    assert b"<html>" in response.data
 
-    def test_home_status_code(self):
-        """Test the home route."""
-        response = self.client.get('/')  # Send a GET request to the home route
-        self.assertEqual(response.status_code, 200)  # Check that the status code is 200
+def test_generate_email_route_success(client, monkeypatch):
+    """Test the /generate-email route with valid input."""
 
-    def test_generate_email_route(self):
-        """Test the /generate-email POST route."""
-        data = {
-            "to": "test@example.com",
-            "message": "Hello, how are you?",
-            "tone": "formal"
-        }
-        response = self.client.post('/generate-email', json=data)  # Send a POST request to the /generate-email route
+    # Mock the `generate_email` function
+    def mock_generate_email(recipient, message, tone):
+        return f"Generated email for {recipient} with tone {tone}."
 
-        self.assertEqual(response.status_code, 200)  # Check that the status code is 200
-        response_json = response.get_json()  # Get the response JSON
-        self.assertIn("email", response_json)  # Check that the 'email' key is in the response JSON
+    # Use monkeypatch to override the `generate_email` function
+    monkeypatch.setattr("api.gemini_api.generate_email", mock_generate_email)
 
-if __name__ == "__main__":
-    unittest.main()
+    # Test data
+    test_data = {
+        "to": "test@example.com",
+        "message": "Hello!",
+        "tone": "friendly"
+    }
+
+    response = client.post("/generate-email", json=test_data)
+    assert response.status_code == 200
+
+    data = response.get_json()
+    assert "email" in data
+    assert "Generated email for test@example.com with tone friendly." == data["email"]
+
+def test_generate_email_route_missing_fields(client):
+    """Test the /generate-email route with missing fields."""
+    test_data = {"to": "test@example.com"}  # Missing 'message' and 'tone'
+
+    response = client.post("/generate-email", json=test_data)
+    assert response.status_code == 400
+    assert "error" in response.get_json()
+
+def test_generate_email_route_no_json(client):
+    """Test the /generate-email route with no JSON input."""
+    response = client.post("/generate-email")
+    assert response.status_code == 400
+    assert "error" in response.get_json()
