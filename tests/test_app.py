@@ -1,5 +1,5 @@
 import pytest
-from app import app
+from app.app import app
 
 @pytest.fixture
 def client():
@@ -21,7 +21,7 @@ def test_generate_email_route_success(client, monkeypatch):
     def mock_generate_email(recipient, message, tone):
         return f"Generated email for {recipient} with tone {tone}."
 
-    # Use monkeypatch to override the `generate_email` function
+    # Using monkeypatch to override the `generate_email` function
     monkeypatch.setattr("api.gemini_api.generate_email", mock_generate_email)
 
     # Test data
