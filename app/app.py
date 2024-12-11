@@ -7,6 +7,8 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
+
+
 @app.route("/generate-email", methods=["POST"])
 def generate_email_route():
     data = request.json
@@ -19,5 +21,8 @@ def generate_email_route():
 
     return jsonify({"email": email_content})
 
+
 if __name__ == "__main__":
     app.run(debug=True)
+
+
