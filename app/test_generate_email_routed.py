@@ -1,7 +1,6 @@
 import unittest
 from app import app  # Import the application object
 
-
 class TestRoutes(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()  # Create the test client here
